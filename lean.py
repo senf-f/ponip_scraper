@@ -8,22 +8,25 @@ import requests
 def main():
     start = perf_counter()
     errors = ""
+    nepotpuni = []
 
-    print("Debug: ", os.getcwd())
+    # print("Debug: ", os.getcwd())
+
+    directory_base = "/opt/ponip_scraper/"  # ""
 
     # Download the CSV file
     url = "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv"
     r = requests.get(url, stream=True)
-    with open('/opt/ponip_scraper/ponip_ocevidnik.csv', 'wb')as file:
+    with open(f'{directory_base}ponip_ocevidnik.csv', 'wb')as file:
         file.write(r.content)
 
-    with open('/opt/ponip_scraper/idevi') as f:
+    with open(f'{directory_base}idevi') as f:
         id_evi = f.read().splitlines()
 
     # print(id_evi)
 
     # Open the CSV file
-    with open('/opt/ponip_scraper/ponip_ocevidnik.csv', 'r', encoding='utf-8') as f:
+    with open(f'{directory_base}ponip_ocevidnik.csv', 'r', encoding='utf-8') as f:
 
         # Skip first line (header)
         header = next(f)
@@ -38,6 +41,8 @@ def main():
             try:
                 # Nepotpuni podaci
                 if len(fields) != 25 or fields[13] == "":
+                    nepotpuni += [fields]
+                    # nepotpuni_idevi += fields[8]
                     continue
 
                 # Datum i vrijeme početka nadmetanja
@@ -94,8 +99,9 @@ def main():
         print(datetime.now(), footer.split("\n")[0])
         # print(footer)
         # print(id_evi)
+        print("Nepotpuni: ", len(nepotpuni))
 
-        with open("/opt/ponip_scraper/idevi", mode="wt") as fi:
+        with open(f"{directory_base}idevi", mode="wt") as fi:
             for identifikator in id_evi:
                 fi.write(identifikator + "\n")
 
@@ -106,13 +112,13 @@ def main():
             send_to_telegram(footer)
 
     # Remove the CSV file
-    file_path = "/opt/ponip_scraper/ponip_ocevidnik.csv"
-
-    if os.path.isfile(file_path):
-        os.remove(file_path)
-        print(f"{file_path} deleted.")
-    else:
-        print(f"{file_path} not found.")
+    # file_path = f"{directory_base}ponip_ocevidnik.csv"
+    #
+    # if os.path.isfile(file_path):
+    #     os.remove(file_path)
+    #     print(f"{file_path} deleted.")
+    # else:
+    #     print(f"{file_path} not found.")
 
 
 def send_to_telegram(content):
