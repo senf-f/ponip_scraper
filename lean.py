@@ -87,8 +87,8 @@ def main():
             result += f"\nOpis: {fields[2]}"
             result += f"\nNapomena: {fields[6]}"
             result += f"\nDatum početka i završetka nadmetanja: {fields[12]} - {fields[13]}"
-            result += f"\nRazgledavanje: {fields[24]}"
-            result += f"\nNapomena: {fields[25]}"
+            result += f"\nRazgledavanje: {fields[22]}"
+            result += f"\nNapomena: {fields[23]}"
             id_evi.append(fields[8])
 
             send_to_telegram(f"Novo na PONIP scraperu:\n{result}")
