@@ -58,7 +58,7 @@ def main():
                     continue
 
                 # Opis
-                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel"]
+                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina", "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin"]
                 if not any(grad in fields[2][1:-1] for grad in gradovi):
                     continue
 
@@ -70,8 +70,8 @@ def main():
                 if float(fields[16][1:-1]) > 200000:
                     continue
 
-                if float(fields[16][1:-1]) < 50000:
-                    continue
+#                if float(fields[16][1:-1]) < 50000:
+#                    continue
 
                 counter += 1
 

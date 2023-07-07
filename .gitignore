@@ -1,0 +1,9 @@
+creds.py
+
+*.txt
+
+idevi
+
+__pycache__
+
+ponip_ocevidnik.csv
