@@ -58,7 +58,7 @@ def main():
                     continue
 
                 # Opis
-                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina", "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin"]
+                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina", "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete"]
                 if not any(grad in fields[2][1:-1] for grad in gradovi):
                     continue
 
