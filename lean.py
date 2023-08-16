@@ -3,6 +3,18 @@ import os
 from datetime import datetime
 from time import perf_counter
 import requests
+import logging
+
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("ponip_scraped.log"),
+        logging.StreamHandler()
+    ]
+)
 
 
 def main():
@@ -10,9 +22,9 @@ def main():
     errors = ""
     nepotpuni = []
 
-    # print("Debug: ", os.getcwd())
+    logging.debug("Debug: ", os.getcwd())
 
-    directory_base = "/opt/ponip_scraper/"  # ""
+    directory_base = "/opt/ponip_scraper/"  # za dev izvrsavanje: ""
 
     # Download the CSV file
     url = "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv"
@@ -23,13 +35,13 @@ def main():
     with open(f'{directory_base}idevi') as f:
         id_evi = f.read().splitlines()
 
-    # print(id_evi)
+    logging.debug(id_evi)
 
     # Open the CSV file
     with open(f'{directory_base}ponip_ocevidnik.csv', 'r', encoding='utf-8') as f:
 
         # Skip first line (header)
-        header = next(f)
+        next(f)
         counter = 0
         error_counter = 0
 
@@ -42,7 +54,6 @@ def main():
                 # Nepotpuni podaci
                 if len(fields) != 25 or fields[13] == "":
                     nepotpuni += [fields]
-                    # nepotpuni_idevi += fields[8]
                     continue
 
                 # Datum i vrijeme početka nadmetanja
@@ -70,9 +81,6 @@ def main():
                 if float(fields[16][1:-1]) > 200000:
                     continue
 
-#                if float(fields[16][1:-1]) < 50000:
-#                    continue
-
                 counter += 1
 
             except ValueError as err:
@@ -92,16 +100,14 @@ def main():
             id_evi.append(fields[8])
 
             send_to_telegram(f"Novo na PONIP scraperu:\n{result}")
-            # print(result)
-            # print(errors)
+            logging.debug("result = ", result)
+            logging.debug("errors = ", errors)
 
         footer = f"Counter: {counter} | Errors: {error_counter} | Performance: {perf_counter() - start} s\n"
         footer += "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
 
-        print(datetime.now(), footer.split("\n")[0])
-        # print(footer)
-        # print(id_evi)
-        print("Nepotpuni: ", len(nepotpuni))
+        logging.info(str(datetime.now()) + " " + footer.split('\n')[0])
+        logging.info(f"Nepotpuni: {len(nepotpuni)}")
 
         with open(f"{directory_base}idevi", mode="wt") as fi:
             for identifikator in id_evi:
@@ -112,15 +118,6 @@ def main():
 
         if counter:
             send_to_telegram(footer)
-
-    # Remove the CSV file
-    # file_path = f"{directory_base}ponip_ocevidnik.csv"
-    #
-    # if os.path.isfile(file_path):
-    #     os.remove(file_path)
-    #     print(f"{file_path} deleted.")
-    # else:
-    #     print(f"{file_path} not found.")
 
 
 def send_to_telegram(content):
@@ -134,9 +131,9 @@ def send_to_telegram(content):
 
     try:
         response = requests.post(api_url, json={'chat_id': chat_id, 'text': content})
-        # print(response.text)
+        logging.debug(response.text)
     except Exception as e:
-        print(e)
+        logging.error(e)
 
 
 if __name__ == '__main__':
