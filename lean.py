@@ -6,12 +6,14 @@ import requests
 import logging
 
 
+directory_base = "/opt/ponip_scraper/"  # za dev izvrsavanje: ""
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("ponip_scraped.log"),
+        logging.FileHandler(f"{directory_base}ponip_scraped.log"),
         logging.StreamHandler()
     ]
 )
@@ -23,8 +25,6 @@ def main():
     nepotpuni = []
 
     logging.debug("Debug: ", os.getcwd())
-
-    directory_base = "/opt/ponip_scraper/"  # za dev izvrsavanje: ""
 
     # Download the CSV file
     url = "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv"
