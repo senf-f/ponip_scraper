@@ -14,6 +14,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler(f"{directory_base}ponip_scraped.log"),
+        logging.FileHandler("/var/log/scrapers/ponip_scrape_log.txt"),
         logging.StreamHandler()
     ]
 )
