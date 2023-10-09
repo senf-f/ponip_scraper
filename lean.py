@@ -53,7 +53,7 @@ def main():
 
             try:
                 # Nepotpuni podaci
-                if len(fields) != 25 or fields[13] == "":
+                if len(fields) != 26 or fields[13] == "":
                     nepotpuni += [fields]
                     continue
 
