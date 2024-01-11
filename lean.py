@@ -91,7 +91,7 @@ def main():
 
             # Process the line
             result = "---------------------------------------"
-            result += f"\nID: {fields[8]} | Početna cijena: {fields[17]} | Oznaka EJD: {fields[9]}"
+            result += f"\nID: {fields[8]} | Početna cijena: {fields[17]} | Oznaka EJD: {fields[9]} | Poslovni broj spisa: {fields[1]}"
             result += "\n---------------------------------------"
             result += f"\nOpis: {fields[2]}"
             result += f"\nNapomena: {fields[6]}"
