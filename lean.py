@@ -1,10 +1,11 @@
 #!/usr/bin/python3
+import logging
 import os
+import sys
 from datetime import datetime
 from time import perf_counter
-import requests
-import logging
 
+import requests
 
 directory_base = "/opt/ponip_scraper/"  # za dev izvrsavanje: ""
 
@@ -20,24 +21,23 @@ logging.basicConfig(
 )
 
 
-def main():
+def main(ukljuci_neslobodne: bool = False):
+    parsiraj_csv(ukljuci_neslobodne=ukljuci_neslobodne)
+
+
+def parsiraj_csv(ukljuci_neslobodne: bool = False):
     start = perf_counter()
     errors = ""
     nepotpuni = []
-
     logging.debug("Debug: ", os.getcwd())
-
     # Download the CSV file
     url = "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv"
     r = requests.get(url, stream=True)
-    with open(f'{directory_base}ponip_ocevidnik.csv', 'wb')as file:
+    with open(f'{directory_base}ponip_ocevidnik.csv', 'wb') as file:
         file.write(r.content)
-
     with open(f'{directory_base}idevi') as f:
         id_evi = f.read().splitlines()
-
     logging.debug(id_evi)
-
     # Open the CSV file
     with open(f'{directory_base}ponip_ocevidnik.csv', 'r', encoding='utf-8') as f:
 
@@ -66,11 +66,13 @@ def main():
                     continue
 
                 # Napomena uz detalje predmeta prodaje
-                if "nije slobodna" in fields[6]:
-                    continue
+                if not ukljuci_neslobodne:
+                    if "nije slobodna" in fields[6]:
+                        continue
 
                 # Opis
-                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina", "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan"]
+                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina",
+                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan"]
                 if not any(grad in fields[2][1:-1] for grad in gradovi):
                     continue
 
@@ -100,7 +102,8 @@ def main():
             result += f"\nDodatna napomena: {fields[23]}"
             id_evi.append(fields[8])
 
-            send_to_telegram(f"Novo na PONIP scraperu:\n{result}")
+            send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
+                             ukljuci_neslobodne=ukljuci_neslobodne)
             logging.debug("result = ", result)
             logging.debug("errors = ", errors)
 
@@ -115,17 +118,20 @@ def main():
                 fi.write(identifikator + "\n")
 
         if error_counter:
-            send_to_telegram(f"Greške na PONIP scraperu:\n{errors}\n{footer}")
+            send_to_telegram(content=f"Greške na PONIP scraperu:\n{errors}\n{footer}",
+                             ukljuci_neslobodne=ukljuci_neslobodne)
 
         if counter:
-            send_to_telegram(footer)
+            send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
 
 
-def send_to_telegram(content):
-
+def send_to_telegram(content, ukljuci_neslobodne: bool = False):
     import creds
 
-    api_token = creds.TELEGRAM_API_TOKEN_PONIP
+    if not ukljuci_neslobodne:
+        api_token = creds.TELEGRAM_API_TOKEN_PONIP
+    else:
+        api_token = creds.TELEGRAM_API_TOKEN_PONIP_OCCUPIED
     chat_id = creds.TELEGRAM_CHAT_ID
 
     api_url = f"https://api.telegram.org/bot{api_token}/sendMessage"
@@ -138,4 +144,14 @@ def send_to_telegram(content):
 
 
 if __name__ == '__main__':
-    main()
+    ukljuci_neslobodne = False
+    if len(sys.argv) > 2:
+        raise ValueError("Previse argumenata!")
+    if len(sys.argv) == 2:
+        param_1 = eval(sys.argv[1])
+        if not isinstance(param_1, bool):
+            raise TypeError("Argument nije boolean!")
+        else:
+            ukljuci_neslobodne = param_1
+    print(ukljuci_neslobodne)
+    main(ukljuci_neslobodne=ukljuci_neslobodne)
