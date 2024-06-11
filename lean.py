@@ -153,5 +153,4 @@ if __name__ == '__main__':
             raise TypeError("Argument nije boolean!")
         else:
             ukljuci_neslobodne = param_1
-    print(ukljuci_neslobodne)
     main(ukljuci_neslobodne=ukljuci_neslobodne)
