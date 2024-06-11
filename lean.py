@@ -72,7 +72,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
 
                 # Opis
                 gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina",
-                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan"]
+                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan", "Klara"]
                 if not any(grad in fields[2][1:-1] for grad in gradovi):
                     continue
 
