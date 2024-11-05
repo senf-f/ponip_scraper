@@ -118,7 +118,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
                 fi.write(identifikator + "\n")
 
         if error_counter:
-            send_to_telegram(content=f"Greške na PONIP scraperu:\n{errors}\n{footer}",
+            send_to_telegram(content=f"Greške na 'PONIP' scraperu:\n{errors}\n{footer}",
                              ukljuci_neslobodne=ukljuci_neslobodne)
 
         if counter:
