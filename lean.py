@@ -1,40 +1,14 @@
 #!/usr/bin/python3
-import json
+import argparse
 import logging
 import os
-import platform
 import sys
 from datetime import datetime
 from time import perf_counter
 
 import requests
 
-
-def load_config():
-    # Load the base configuration
-    with open("config.json", "r") as base_config_file:
-        config = json.load(base_config_file)
-
-    # Check if running on Windows and if the dev config exists
-    if platform.system() == "Windows" and os.path.exists("config.dev.json"):
-        with open("config.dev.json", "r") as dev_config_file:
-            dev_config = json.load(dev_config_file)
-            # Merge configurations (dev values override base values)
-            config.update(dev_config)
-
-    return config
-
-
-def validate_config(config):
-    required_keys = ["directory_base", "log_files", "csv_url", "max_price", "expected_fields_count"]
-    for key in required_keys:
-        if key not in config:
-            raise KeyError(f"Missing required configuration: {key}")
-    if not isinstance(config["log_files"], list):
-        raise TypeError("log_files must be a list of file paths")
-    if not os.path.exists(config["directory_base"]):
-        raise FileNotFoundError(f"Base directory does not exist: {config['directory_base']}")
-
+from configurator import load_config, validate_config
 
 CONFIG = load_config()
 validate_config(CONFIG)
@@ -49,15 +23,16 @@ EXPECTED_FIELDS_COUNT = CONFIG["expected_fields_count"]
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file)) for log_file in LOG_FILES] + [logging.StreamHandler()]
+    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file)) for log_file in LOG_FILES] + [
+        logging.StreamHandler()]
 )
 
 
-def main(ukljuci_neslobodne: bool = False):
-    parsiraj_csv(ukljuci_neslobodne=ukljuci_neslobodne)
+def main(include_occupied: bool = False):
+    parsiraj_csv(include_occupied=include_occupied)
 
 
-def parsiraj_csv(ukljuci_neslobodne: bool = False):
+def parsiraj_csv(include_occupied: bool = False):
     start = perf_counter()
     errors = ""
     nepotpuni = []
@@ -97,7 +72,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
                     continue
 
                 # Napomena uz detalje predmeta prodaje
-                if not ukljuci_neslobodne:
+                if not include_occupied:
                     if "nije slobodna" in fields[6]:
                         continue
 
@@ -135,7 +110,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
             id_evi.append(fields[8])
 
             send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
-                             ukljuci_neslobodne=ukljuci_neslobodne)
+                             include_occupied=include_occupied)
             logging.debug("result = ", result)
             logging.debug("errors = ", errors)
 
@@ -146,21 +121,20 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
         logging.info(f"Nepotpuni: {len(nepotpuni)}")
 
         with open(f"{BASE_DIR}idevi", mode="wt") as fi:
-            for identifikator in id_evi:
-                fi.write(identifikator + "\n")
+            fi.write("\n".join(id_evi))
 
         if error_counter:
             send_to_telegram(content=f"Greške na 'PONIP' scraperu:\n{errors}\n{footer}",
-                             ukljuci_neslobodne=ukljuci_neslobodne)
+                             include_occupied=include_occupied)
 
         if counter:
-            send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
+            send_to_telegram(content=footer, include_occupied=include_occupied)
 
 
-def send_to_telegram(content, ukljuci_neslobodne: bool = False):
+def send_to_telegram(content, include_occupied: bool = False):
     import creds
 
-    if not ukljuci_neslobodne:
+    if not include_occupied:
         api_token = creds.TELEGRAM_API_TOKEN_PONIP
     else:
         api_token = creds.TELEGRAM_API_TOKEN_PONIP_OCCUPIED
@@ -169,20 +143,20 @@ def send_to_telegram(content, ukljuci_neslobodne: bool = False):
     api_url = f"https://api.telegram.org/bot{api_token}/sendMessage"
 
     try:
-        response = requests.post(api_url, json={'chat_id': chat_id, 'text': content})
-        logging.debug(response.text)
-    except Exception as e:
-        logging.error(e)
+        response = requests.post(api_url, json={'chat_id': chat_id, 'text': content}, timeout=10)
+        response.raise_for_status()
+        logging.info("Telegram message sent successfully.")
+    except requests.RequestException as e:
+        logging.error(f"Failed to send Telegram message: {e}")
 
 
 if __name__ == '__main__':
-    ukljuci_neslobodne = False
+    include_occupied = False
     if len(sys.argv) > 2:
-        raise ValueError("Previse argumenata!")
+        raise ValueError("Too many arguments!")
     if len(sys.argv) == 2:
-        param_1 = eval(sys.argv[1])
-        if not isinstance(param_1, bool):
-            raise TypeError("Argument nije boolean!")
-        else:
-            ukljuci_neslobodne = param_1
-    main(ukljuci_neslobodne=ukljuci_neslobodne)
+        parser = argparse.ArgumentParser(description="PONIP Scraper")
+        parser.add_argument("--include-occupied", action="store_true", help="Include occupied properties")
+        args = parser.parse_args()
+        main(include_occupied=args.include_occupied)
+    main(include_occupied=include_occupied)
