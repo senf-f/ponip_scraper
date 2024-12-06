@@ -134,8 +134,8 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
             result += f"\nDodatna napomena: {fields[23]}"
             id_evi.append(fields[8])
 
-            # send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
-            #                  ukljuci_neslobodne=ukljuci_neslobodne)
+            send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
+                             ukljuci_neslobodne=ukljuci_neslobodne)
             logging.debug("result = ", result)
             logging.debug("errors = ", errors)
 
@@ -154,8 +154,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
                              ukljuci_neslobodne=ukljuci_neslobodne)
 
         if counter:
-            # send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
-            print(f"[MM] {footer}")
+            send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
 
 
 def send_to_telegram(content, ukljuci_neslobodne: bool = False):
