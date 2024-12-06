@@ -1,23 +1,55 @@
 #!/usr/bin/python3
+import json
 import logging
 import os
+import platform
 import sys
 from datetime import datetime
 from time import perf_counter
 
 import requests
 
-directory_base = "/opt/ponip_scraper/"  # za dev izvrsavanje: ""
+
+def load_config():
+    # Load the base configuration
+    with open("config.json", "r") as base_config_file:
+        config = json.load(base_config_file)
+
+    # Check if running on Windows and if the dev config exists
+    if platform.system() == "Windows" and os.path.exists("config.dev.json"):
+        with open("config.dev.json", "r") as dev_config_file:
+            dev_config = json.load(dev_config_file)
+            # Merge configurations (dev values override base values)
+            config.update(dev_config)
+
+    return config
+
+
+def validate_config(config):
+    required_keys = ["directory_base", "log_files", "csv_url", "max_price", "expected_fields_count"]
+    for key in required_keys:
+        if key not in config:
+            raise KeyError(f"Missing required configuration: {key}")
+    if not isinstance(config["log_files"], list):
+        raise TypeError("log_files must be a list of file paths")
+    if not os.path.exists(config["directory_base"]):
+        raise FileNotFoundError(f"Base directory does not exist: {config['directory_base']}")
+
+
+CONFIG = load_config()
+validate_config(CONFIG)
+
+BASE_DIR = CONFIG["directory_base"]
+LOG_FILES = CONFIG["log_files"]
+CSV_URL = CONFIG["csv_url"]
+MAX_PRICE = CONFIG["max_price"]
+EXPECTED_FIELDS_COUNT = CONFIG["expected_fields_count"]
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(f"{directory_base}ponip_scraped.log"),
-        logging.FileHandler("/var/log/scrapers/ponip_scrape_log.txt"),
-        logging.StreamHandler()
-    ]
+    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file)) for log_file in LOG_FILES] + [logging.StreamHandler()]
 )
 
 
@@ -31,15 +63,14 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
     nepotpuni = []
     logging.debug("Debug: ", os.getcwd())
     # Download the CSV file
-    url = "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv"
-    r = requests.get(url, stream=True)
-    with open(f'{directory_base}ponip_ocevidnik.csv', 'wb') as file:
+    r = requests.get(CSV_URL, stream=True)
+    with open(os.path.join(BASE_DIR, 'ponip_ocevidnik.csv'), 'wb') as file:
         file.write(r.content)
-    with open(f'{directory_base}idevi') as f:
+    with open(os.path.join(BASE_DIR, 'idevi')) as f:
         id_evi = f.read().splitlines()
     logging.debug(id_evi)
     # Open the CSV file
-    with open(f'{directory_base}ponip_ocevidnik.csv', 'r', encoding='utf-8') as f:
+    with open(os.path.join(BASE_DIR, 'ponip_ocevidnik.csv'), 'r', encoding='utf-8') as f:
 
         # Skip first line (header)
         next(f)
@@ -72,7 +103,8 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
 
                 # Opis
                 gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina",
-                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan", "Klara"]
+                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan",
+                           "Klara"]
                 if not any(grad in fields[2][1:-1] for grad in gradovi):
                     continue
 
@@ -81,7 +113,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
                     continue
 
                 # Minimalna zakonska cijena ispod koje se predmet prodaje ne može prodati
-                if float(fields[16][1:-1]) > 200000:
+                if float(fields[16][1:-1]) > MAX_PRICE:
                     continue
 
                 counter += 1
@@ -102,8 +134,8 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
             result += f"\nDodatna napomena: {fields[23]}"
             id_evi.append(fields[8])
 
-            send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
-                             ukljuci_neslobodne=ukljuci_neslobodne)
+            # send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
+            #                  ukljuci_neslobodne=ukljuci_neslobodne)
             logging.debug("result = ", result)
             logging.debug("errors = ", errors)
 
@@ -113,7 +145,7 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
         logging.info(str(datetime.now()) + " " + footer.split('\n')[0])
         logging.info(f"Nepotpuni: {len(nepotpuni)}")
 
-        with open(f"{directory_base}idevi", mode="wt") as fi:
+        with open(f"{BASE_DIR}idevi", mode="wt") as fi:
             for identifikator in id_evi:
                 fi.write(identifikator + "\n")
 
@@ -122,7 +154,8 @@ def parsiraj_csv(ukljuci_neslobodne: bool = False):
                              ukljuci_neslobodne=ukljuci_neslobodne)
 
         if counter:
-            send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
+            # send_to_telegram(content=footer, ukljuci_neslobodne=ukljuci_neslobodne)
+            print(f"[MM] {footer}")
 
 
 def send_to_telegram(content, ukljuci_neslobodne: bool = False):

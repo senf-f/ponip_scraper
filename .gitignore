@@ -1,4 +1,5 @@
 creds.py
+test.py
 
 *.txt
 
@@ -7,3 +8,7 @@ idevi
 __pycache__
 
 ponip_ocevidnik.csv
+
+config.dev.json
+
+/logs
