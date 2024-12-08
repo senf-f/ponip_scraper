@@ -9,6 +9,7 @@ from time import perf_counter
 import requests
 
 from configurator import load_config, validate_config
+from data import Nekretnina
 
 CONFIG = load_config()
 validate_config(CONFIG)
@@ -23,7 +24,7 @@ EXPECTED_FIELDS_COUNT = CONFIG["expected_fields_count"]
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file)) for log_file in LOG_FILES] + [
+    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file).replace("\\", "/")) for log_file in LOG_FILES] + [
         logging.StreamHandler()]
 )
 
@@ -36,16 +37,21 @@ def parsiraj_csv(include_occupied: bool = False):
     start = perf_counter()
     errors = ""
     nepotpuni = []
-    logging.debug("Debug: ", os.getcwd())
+    data_items = []
+    logging.info(f"[*] Current directory: {os.getcwd()}")
+
     # Download the CSV file
     r = requests.get(CSV_URL, stream=True)
-    with open(os.path.join(BASE_DIR, 'ponip_ocevidnik.csv'), 'wb') as file:
+    csv_path = os.path.join(BASE_DIR, 'ponip_ocevidnik.csv').replace("\\", "/")
+    with open(csv_path, 'wb') as file:
         file.write(r.content)
+
     with open(os.path.join(BASE_DIR, 'idevi')) as f:
         id_evi = f.read().splitlines()
-    logging.debug(id_evi)
+    logging.info(f"[*] {id_evi}")
+
     # Open the CSV file
-    with open(os.path.join(BASE_DIR, 'ponip_ocevidnik.csv'), 'r', encoding='utf-8') as f:
+    with open(csv_path, 'r', encoding='utf-8') as f:
 
         # Skip first line (header)
         next(f)
@@ -61,6 +67,7 @@ def parsiraj_csv(include_occupied: bool = False):
                 # Nepotpuni podaci
                 if len(fields) != 26 or fields[13] == "":
                     nepotpuni += [fields]
+                    ## MM kako hendlati nepotpune
                     continue
 
                 # Datum i vrijeme početka nadmetanja
@@ -109,10 +116,37 @@ def parsiraj_csv(include_occupied: bool = False):
             result += f"\nDodatna napomena: {fields[23]}"
             id_evi.append(fields[8])
 
+            # Create a RealEstateItem instance
+            item = Nekretnina(
+                nadlezno_tijelo=fields[0],
+                poslovni_broj=fields[1],
+                opis=fields[2][1:-1],
+                vrsta_predmeta=fields[3],
+                opseg_imovine=fields[4],
+                utvrdjena_vrijednost=float(fields[5]),
+                napomena_uz_detalje=fields[6],
+                id_nadmetanja=int(fields[8]),
+                broj_drazbe=fields[9],
+                datum_odluke=datetime.strptime(fields[10][1:-1], "%Y-%m-%d"),
+                datum_pocetka=datetime.strptime(fields[11][1:-1], "%Y-%m-%d %H:%M:%S"),
+                datum_pocetka_nadmetanja=datetime.strptime(fields[12][1:-1], "%Y-%m-%d %H:%M:%S"),
+                datum_zavrsetka_nadmetanja=datetime.strptime(fields[13][1:-1], "%Y-%m-%d %H:%M:%S"),
+                ostali_uvjeti_prodaje=fields[15],
+                min_cijena=float(fields[16][1:-1]),
+                pocetna_cijena=float(fields[17]),
+                iznos_drazbenog_koraka=float(fields[18]),
+                jamcevina=float(fields[20]),
+                ostali_uvjeti_za_jamcevinu=fields[21],
+                razgledavanje=fields[22],
+                napomena_uz_uvjete_prodaje=fields[23]
+            )
+
+            # Add to list for further processing
+            data_items.append(item)
+
             send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
                              include_occupied=include_occupied)
-            logging.debug("result = ", result)
-            logging.debug("errors = ", errors)
+            logging.info(f"{result=}")
 
         footer = f"Counter: {counter} | Errors: {error_counter} | Performance: {perf_counter() - start} s\n"
         footer += "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
