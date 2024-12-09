@@ -152,7 +152,6 @@ def parsiraj_csv(include_occupied: bool = False):
         footer += "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
 
         logging.info(str(datetime.now()) + " " + footer.split('\n')[0])
-        logging.info(f"Nepotpuni: {len(nepotpuni)}")
 
         with open(f"{BASE_DIR}idevi", mode="wt") as fi:
             fi.write("\n".join(id_evi))
