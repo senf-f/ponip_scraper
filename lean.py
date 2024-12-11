@@ -1,8 +1,6 @@
 #!/usr/bin/python3
-import argparse
 import logging
 import os
-import sys
 from datetime import datetime
 from time import perf_counter
 
@@ -29,11 +27,7 @@ logging.basicConfig(
 )
 
 
-def main(include_occupied: bool = False):
-    parsiraj_csv(include_occupied=include_occupied)
-
-
-def parsiraj_csv(include_occupied: bool = False):
+def parsiraj_csv():
     start = perf_counter()
     errors = ""
     nepotpuni = []
@@ -48,7 +42,6 @@ def parsiraj_csv(include_occupied: bool = False):
 
     with open(os.path.join(BASE_DIR, 'idevi')) as f:
         id_evi = f.read().splitlines()
-    logging.info(f"[*] {id_evi}")
 
     # Open the CSV file
     with open(csv_path, 'r', encoding='utf-8') as f:
@@ -77,11 +70,6 @@ def parsiraj_csv(include_occupied: bool = False):
                 # Je li već korišten
                 if fields[8] in id_evi:
                     continue
-
-                # Napomena uz detalje predmeta prodaje
-                if not include_occupied:
-                    if "nije slobodna" in fields[6]:
-                        continue
 
                 # Opis
                 gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina",
@@ -144,8 +132,7 @@ def parsiraj_csv(include_occupied: bool = False):
             # Add to list for further processing
             data_items.append(item)
 
-            send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}",
-                             include_occupied=include_occupied)
+            send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}")
             logging.info(f"{result=}")
 
         footer = f"Counter: {counter} | Errors: {error_counter} | Performance: {perf_counter() - start} s\n"
@@ -157,20 +144,16 @@ def parsiraj_csv(include_occupied: bool = False):
             fi.write("\n".join(id_evi))
 
         if error_counter:
-            send_to_telegram(content=f"Greške na 'PONIP' scraperu:\n{errors}\n{footer}",
-                             include_occupied=include_occupied)
+            send_to_telegram(content=f"Greške na 'PONIP' scraperu:\n{errors}\n{footer}")
 
         if counter:
-            send_to_telegram(content=footer, include_occupied=include_occupied)
+            send_to_telegram(content=footer)
 
 
-def send_to_telegram(content, include_occupied: bool = False):
+def send_to_telegram(content):
     import creds
 
-    if not include_occupied:
-        api_token = creds.TELEGRAM_API_TOKEN_PONIP
-    else:
-        api_token = creds.TELEGRAM_API_TOKEN_PONIP_OCCUPIED
+    api_token = creds.TELEGRAM_API_TOKEN_PONIP
     chat_id = creds.TELEGRAM_CHAT_ID
 
     api_url = f"https://api.telegram.org/bot{api_token}/sendMessage"
@@ -184,12 +167,4 @@ def send_to_telegram(content, include_occupied: bool = False):
 
 
 if __name__ == '__main__':
-    include_occupied = False
-    if len(sys.argv) > 2:
-        raise ValueError("Too many arguments!")
-    if len(sys.argv) == 2:
-        parser = argparse.ArgumentParser(description="PONIP Scraper")
-        parser.add_argument("--include-occupied", action="store_true", help="Include occupied properties")
-        args = parser.parse_args()
-        main(include_occupied=args.include_occupied)
-    main(include_occupied=include_occupied)
+    parsiraj_csv()
