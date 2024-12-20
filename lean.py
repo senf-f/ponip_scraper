@@ -17,6 +17,8 @@ LOG_FILES = CONFIG["log_files"]
 CSV_URL = CONFIG["csv_url"]
 MAX_PRICE = CONFIG["max_price"]
 EXPECTED_FIELDS_COUNT = CONFIG["expected_fields_count"]
+GRADOVI = CONFIG["gradovi"]
+VRSTA_NEKRETNINE = CONFIG["vrsta_nekretnine"]
 
 # Configure logging
 logging.basicConfig(
@@ -72,14 +74,10 @@ def parsiraj_csv():
                     continue
 
                 # Opis
-                gradovi = ["Split", "Zagreb", "Omiš", "Trogir", "Klis", "Dicmo", "Kaštel", "Klinča", "Pisarovina",
-                           "Jastrebarsko", "Samobor", "Nedelja", "Zaprešić", "Dugi Rat", "Solin", "Sesvete", "Lužan",
-                           "Klara"]
-                if not any(grad in fields[2][1:-1] for grad in gradovi):
+                if not any(grad in fields[2][1:-1] for grad in GRADOVI):
                     continue
 
-                vrsta_nekretnine = ["kuća", "stan", "Stan", "Kuća", "nekretnina", "Nekretnina", "Poslovni", "poslovni"]
-                if not any(vrsta in fields[2][1:-1] for vrsta in vrsta_nekretnine):
+                if not any(vrsta in fields[2][1:-1] for vrsta in VRSTA_NEKRETNINE):
                     continue
 
                 # Minimalna zakonska cijena ispod koje se predmet prodaje ne može prodati

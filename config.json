@@ -1,10 +1,46 @@
 {
-    "directory_base": "/opt/ponip_scraper/",
-    "log_files": [
-        "/opt/ponip_scraper/ponip_scraped.log",
-        "/var/log/scrapers/ponip_scrape_log.txt"
-    ],
-    "csv_url": "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv",
-    "max_price": 300000,
-    "expected_fields_count": 26
+  "directory_base": "/opt/ponip_scraper/",
+  "log_files": [
+    "/opt/ponip_scraper/ponip_scraped.log",
+    "/var/log/scrapers/ponip_scrape_log.txt"
+  ],
+  "csv_url": "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv",
+  "max_price": 300000,
+  "expected_fields_count": 26,
+  "gradovi": [
+    "Split",
+    "Zagreb",
+    "Omiš",
+    "Trogir",
+    "Klis",
+    "Dicmo",
+    "Kaštel",
+    "Klinča",
+    "Pisarovina",
+    "Jastrebarsko",
+    "Samobor",
+    "Nedelja",
+    "Zaprešić",
+    "Dugi Rat",
+    "Solin",
+    "Sesvete",
+    "Lužan",
+    "Klara",
+    "Velika Gorica",
+    "Sveta Nedelja",
+    "Zaprešić",
+    "Dugo Selo",
+    "Horvati",
+    "Galgovo"
+  ],
+  "vrsta_nekretnine": [
+    "kuća",
+    "stan",
+    "Stan",
+    "Kuća",
+    "nekretnina",
+    "Nekretnina",
+    "Poslovni",
+    "poslovni"
+  ]
 }
