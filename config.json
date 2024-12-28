@@ -1,7 +1,7 @@
 {
-  "directory_base": "/opt/ponip_scraper/",
+  "directory_base": "/opt/ponip/scraper/",
   "log_files": [
-    "/opt/ponip_scraper/ponip_scraped.log",
+    "/opt/ponip/scraper/ponip_scraped.log",
     "/var/log/scrapers/ponip_scrape_log.txt"
   ],
   "csv_url": "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv",
