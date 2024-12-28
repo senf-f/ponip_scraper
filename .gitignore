@@ -12,3 +12,4 @@ ponip_ocevidnik.csv
 config.dev.json
 
 /logs
+/test_database.db
