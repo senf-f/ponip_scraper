@@ -172,8 +172,8 @@ def send_to_telegram(content):
     api_url = f"https://api.telegram.org/bot{api_token}/sendMessage"
 
     try:
-        # response = requests.post(api_url, json={'chat_id': chat_id, 'text': content}, timeout=10)
-        # response.raise_for_status()
+        response = requests.post(api_url, json={'chat_id': chat_id, 'text': content}, timeout=10)
+        response.raise_for_status()
         logging.info("Telegram message sent successfully.")
     except requests.RequestException as e:
         logging.error(f"Failed to send Telegram message: {e}")
