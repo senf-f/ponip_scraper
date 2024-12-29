@@ -23,10 +23,10 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 if ENVIRONMENT == "production":
     DATABASE_URL = os.getenv("DATABASE_URL")
 else:
-    # DATABASE_URL=postgresql://ponipuser:ponipuser1337@localhost:5432/real_estate_db
     DATABASE_URL = f"sqlite:///{os.getcwd()}/test_database.db"
 # Database configuration
 engine = create_engine(DATABASE_URL)
+logging.debug(f"[M] {DATABASE_URL=}")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 BASE_DIR = CONFIG["directory_base"]
@@ -180,9 +180,9 @@ def send_to_telegram(content):
 
 
 def initialize_database():
-    logging.info("Initializing database...")
+    logging.info("[M] Initializing database...")
     Base.metadata.create_all(engine)
-    logging.info("Database initialized.")
+    logging.info("[M] Database initialized.")
 
 
 if __name__ == '__main__':
