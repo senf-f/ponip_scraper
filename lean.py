@@ -44,7 +44,7 @@ logging.basicConfig(
     handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file).replace("\\", "/")) for log_file in LOG_FILES] +
              [logging.StreamHandler()]
 )
-logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
+# logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
 
 
 def parsiraj_csv():
