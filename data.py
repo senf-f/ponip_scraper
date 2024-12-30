@@ -14,7 +14,7 @@ class Nekretnina(Base):
     __tablename__ = "properties"  # Specifies the database table name
 
     # Column definitions
-    id_nadmetanja: int = Column(Integer, primary_key=True)  # Primary key, scraped from data
+    id: int = Column(Integer, primary_key=True)  # Primary key, scraped from data
     nadlezno_tijelo: str = Column(Text, nullable=False)
     poslovni_broj: str = Column(String, nullable=False)
     opis: str = Column(Text, nullable=False)

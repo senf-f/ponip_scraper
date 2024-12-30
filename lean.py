@@ -121,7 +121,7 @@ def parsiraj_csv():
                     opseg_imovine=fields[4],
                     utvrdjena_vrijednost=float(fields[5]),
                     napomena_uz_detalje=fields[6],
-                    id_nadmetanja=int(fields[8]),
+                    id=int(fields[8]),
                     broj_drazbe=fields[9],
                     datum_odluke=datetime.strptime(fields[10][1:-1], "%Y-%m-%d"),
                     datum_pocetka=datetime.strptime(fields[11][1:-1], "%Y-%m-%d %H:%M:%S"),
@@ -142,7 +142,7 @@ def parsiraj_csv():
                 id_evi.append(fields[8])
 
                 # Notify and log the result
-                result = f"ID: {item.id_nadmetanja} | Opis: {item.opis} | Cijena: {item.pocetna_cijena}"
+                result = f"ID: {item.id} | Opis: {item.opis} | Cijena: {item.pocetna_cijena}"
                 send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}")
                 logging.info(result)
 
