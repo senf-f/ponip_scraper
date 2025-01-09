@@ -148,7 +148,6 @@ def parsiraj_csv():
             session.commit()
 
         footer = f"Counter: {counter} | Errors: {error_counter} | Performance: {perf_counter() - start} s\n"
-        footer += "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
         logger.info(footer)
 
         # Update processed IDs
@@ -169,9 +168,10 @@ def send_to_telegram(content):
     chat_id = creds.TELEGRAM_CHAT_ID
 
     api_url = f"https://api.telegram.org/bot{api_token}/sendMessage"
+    ponip_url = "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
 
     try:
-        response = requests.post(api_url, json={'chat_id': chat_id, 'text': content}, timeout=10)
+        response = requests.post(api_url, json={'chat_id': chat_id, 'text': f"{content}\n{ponip_url}"}, timeout=10)
         response.raise_for_status()
         logger.info("Telegram message sent successfully.")
     except requests.RequestException as e:
