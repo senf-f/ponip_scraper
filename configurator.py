@@ -26,7 +26,5 @@ def validate_config(config):
     for key in required_keys:
         if key not in config:
             raise KeyError(f"Missing required configuration: {key}")
-    if not isinstance(config["log_files"], list):
-        raise TypeError("log_files must be a list of file paths")
     if not os.path.exists(config["directory_base"]):
         raise FileNotFoundError(f"Base directory does not exist: {config['directory_base']}")

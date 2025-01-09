@@ -1,11 +1,13 @@
 #!/usr/bin/python3
-import logging
+
 import os
+import sys
 from datetime import datetime
 from time import perf_counter
 
 import requests
 from dotenv import load_dotenv
+from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -26,7 +28,8 @@ else:
     DATABASE_URL = f"sqlite:///{os.getcwd()}/test_database.db"
 # Database configuration
 engine = create_engine(DATABASE_URL)
-logging.debug(f"[M] {DATABASE_URL=}")
+
+logger.debug(f"[M] DATABASE_URL={DATABASE_URL}")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 BASE_DIR = CONFIG["directory_base"]
@@ -37,21 +40,16 @@ EXPECTED_FIELDS_COUNT = CONFIG["expected_fields_count"]
 GRADOVI = CONFIG["gradovi"]
 VRSTA_NEKRETNINE = CONFIG["vrsta_nekretnine"]
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.FileHandler(os.path.join(BASE_DIR, log_file).replace("\\", "/")) for log_file in LOG_FILES] +
-             [logging.StreamHandler()]
-)
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
+# Configure logging using loguru
+logger.add(LOG_FILES, rotation="1 year")
+logger.add(sys.stdout, format="{time} {level} {message}", level="INFO")
 
 
 def parsiraj_csv():
     start = perf_counter()
     errors = ""
     nepotpuni = []
-    logging.info(f"[*] Current directory: {os.getcwd()}")
+    logger.info(f"[*] Current directory: {os.getcwd()}")
 
     # Download the CSV file
     r = requests.get(CSV_URL, stream=True)
@@ -144,14 +142,14 @@ def parsiraj_csv():
                 # Notify and log the result
                 result = f"ID: {item.id} | Opis: {item.opis} | Cijena: {item.pocetna_cijena}"
                 send_to_telegram(content=f"Novo na PONIP scraperu:\n{result}")
-                logging.info(result)
+                logger.info(result)
 
             # Commit all changes to the database
             session.commit()
 
         footer = f"Counter: {counter} | Errors: {error_counter} | Performance: {perf_counter() - start} s\n"
         footer += "https://ponip.fina.hr/ocevidnik-web/pretrazivanje/nekretnina"
-        logging.info(footer)
+        logger.info(footer)
 
         # Update processed IDs
         with open(f"{BASE_DIR}idevi", mode="wt") as fi:
@@ -175,15 +173,15 @@ def send_to_telegram(content):
     try:
         response = requests.post(api_url, json={'chat_id': chat_id, 'text': content}, timeout=10)
         response.raise_for_status()
-        logging.info("Telegram message sent successfully.")
+        logger.info("Telegram message sent successfully.")
     except requests.RequestException as e:
-        logging.error(f"Failed to send Telegram message: {e}")
+        logger.error(f"Failed to send Telegram message: {e}")
 
 
 def initialize_database():
-    logging.info("[M] Initializing database...")
+    logger.info("[M] Initializing database...")
     Base.metadata.create_all(engine)
-    logging.info("[M] Database initialized.")
+    logger.info("[M] Database initialized.")
 
 
 if __name__ == '__main__':

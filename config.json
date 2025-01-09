@@ -1,9 +1,6 @@
 {
   "directory_base": "/opt/ponip/scraper/",
-  "log_files": [
-    "/opt/ponip/scraper/ponip_scraped.log",
-    "/var/log/scrapers/ponip_scrape_log.txt"
-  ],
+  "log_files": "/var/log/scrapers/ponip_scraper.log",
   "csv_url": "https://ponip.fina.hr/ocevidnik-web/preuzmi/csv",
   "max_price": 300000,
   "expected_fields_count": 26,
